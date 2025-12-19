@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Singleton pattern para Vercel
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+const getPrismaClient = () => {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient();
+  }
+  return globalForPrisma.prisma;
+}
 
 export async function GET(request: NextRequest) {
+  const prisma = getPrismaClient();
+  
   try {
     const { searchParams } = new URL(request.url);
     const publico = searchParams.get('publico');
@@ -34,15 +46,15 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erro ao buscar imóveis:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar imóveis' },
+      { error: 'Erro ao buscar imóveis', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function POST(request: NextRequest) {
+  const prisma = getPrismaClient();
+  
   try {
     const body = await request.json();
     
@@ -58,10 +70,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ Erro ao criar imóvel:', error);
     return NextResponse.json(
-      { error: 'Erro ao criar imóvel' },
+      { error: 'Erro ao criar imóvel', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
