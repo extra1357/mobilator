@@ -32,11 +32,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(imoveis);
   } catch (error) {
-    console.error('Erro ao buscar imóveis:', error);
+    console.error('❌ Erro ao buscar imóveis:', error);
     return NextResponse.json(
       { error: 'Erro ao buscar imóveis' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -54,10 +56,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(imovel, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar imóvel:', error);
+    console.error('❌ Erro ao criar imóvel:', error);
     return NextResponse.json(
       { error: 'Erro ao criar imóvel' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
